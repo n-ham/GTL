@@ -1,60 +1,59 @@
 #ifndef TENSOR_H_
 #define TENSOR_H_
 
+#include "Rational.h"
 #include "../ngame/NStrategy.h"
 
 namespace GTL
 {
-    template <class T>
+    template <class V>
     struct Tensor
     {
         std::vector<int> dimensions;
-        std::vector<T> tensor;
+        std::vector<V> tensor;
 
-        Tensor<T>()
+        Tensor<V>()
         {
 
         };
 
-        //constructs a tensor of type T with dimensions d where all elements are 0
-        Tensor<T>(const std::vector<int> &Dimensions)
+        Tensor<V>(const std::vector<int> &Dimensions)
         {
             dimensions = Dimensions;
-
-            tensor = std::vector<T>(product(dimensions), (T) 0);
+            tensor = std::vector<V>(product(dimensions), (V) 0);
         };
 
         //index function
-        T& operator[](const NStrategy &strategy) const
+        V& operator[](const NStrategy &strategy) const
         {
-            return (T&) tensor[strategy.index];
+            return (V&) tensor[strategy.index];
         };
     };
 
-    template <class T, class M>
-    T sdot(const Tensor<T> &A, const Tensor<M> &B)
+    /*
+        returns the expected value of the payoff tensor given the probability
+        of each outcome occuring as given in the probabilities tensor.
+    */
+    template <class V>
+    V sdot(const Tensor<V> &probabilities, const Tensor<V> &payoffs)
     {
-        T ans = (T) 0;
-        for(int i=0; i<(int)A.tensor.size(); i++)
-            ans += A.tensor[i] * ((T) B.tensor[i]);
-
+        V ans = V(0);
+        for(int i=0; i<(int)probabilities.tensor.size(); i++)
+            ans += probabilities.tensor[i] * payoffs.tensor[i];
         return ans;
     };
 
-    template <class T, class M>
-    std::vector<T> smdot(const Tensor<T> &A, const std::vector<Tensor<M> > &B)
+    /*
+        returns the expected value of each payoff tensor given the probability
+        of each outcome occuring as given in the probabilities tensor.
+    */
+    template <class V>
+    std::vector<V> smdot(const Tensor<V> &probabilities, const std::vector<Tensor<V> > &payoffs)
     {
-        int m = A.dimensions.size();
-        std::vector<T> ans(m,(T) 0);
-
-        for(int i=0; i<(int)A.tensor.size(); i++)
-        {
-            for(int j=0; j<m; j++)
-            {
-                ans[j] += A.tensor[i] * ((T) B[j].tensor[i]);
-            }
-        }
-
+        std::vector<V> ans(probabilities.dimensions.size(), V(0));
+        for(int i=0; i<(int)probabilities.tensor.size(); i++)
+            for(int p=0; p<(int)probabilities.dimensions.size(); p++)
+                ans[p] += probabilities.tensor[i] * payoffs[p].tensor[i];
         return ans;
     };
 }

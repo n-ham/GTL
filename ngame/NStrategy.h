@@ -42,11 +42,11 @@ namespace GTL
         void ppExc(const std::vector<int> &excPlayers);
         void ppInc(int incPlayer);
         void ppInc(const std::vector<int> &incPlayers);
+        void operator++();
         void operator++(int);
     };
 
     std::istream& operator>>(std::istream &is, NStrategy &strategy);               //input function
-    std::ofstream& operator<<(std::ofstream &ofs, const NStrategy &strategy);      //save function
     std::ostream& operator<<(std::ostream &os, const NStrategy &strategy);         //output function
 }
 

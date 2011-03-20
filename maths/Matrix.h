@@ -2,32 +2,32 @@
 #define MATRIX_H
 
 #include "../Const.h"
-
-using namespace std;
+#include <math.h>
 
 namespace GTL
 {
-    template <class T>
+    template <class V>
     struct Matrix
     {
         int rows, cols;                 //dimensions
-        vector<vector<T> > matrix;      //matrix
+        std::vector<std::vector<V> > matrix;      //matrix
 
         //constructors
-        Matrix<T>()
+        Matrix<V>()
         {
             rows = cols = 0;
         };
 
         //constructs an identity matrix
-        Matrix<T>(int r, int c)
+        Matrix<V>(int r, int c)
         {
             rows = r;
             cols = c;
 
-            matrix = vector<vector<T> >(rows, vector<T> (cols, (T) 0));
+            matrix = std::vector<std::vector<V> >(rows, std::vector<V> (cols, V(0) ));
 
-            for(int i=0; i<min(rows, cols); i++)
+            int iMax = std::min(rows, cols);
+            for(int i=0; i<iMax; i++)
                 matrix[i][i] = 1;
         };
 
@@ -35,24 +35,24 @@ namespace GTL
         /*
             n = matrix of n's (not including 0)
         */
-        Matrix<T>(int r, int c, T value)
+        Matrix<V>(int r, int c, V value)
         {
             rows = r;
             cols = c;
 
-            matrix = vector<vector<T> >(rows, vector<T>(cols, value));
+            matrix = std::vector<std::vector<V> >(rows, std::vector<V>(cols, value));
         };
 
         //index function
-        vector<T>& operator[](int i) const
+        std::vector<V>& operator[](int r) const
         {
-            return (vector<T>&)matrix[i];
+            return (std::vector<V>&)matrix[r];
         };
     };
 
     //input function
-    template <class T>
-    istream& operator>>(istream& is, const Matrix<T> &A)
+    template <class V>
+    std::istream& operator>>(std::istream& is, const Matrix<V> &A)
     {
         for(int r=0; r<A.rows; r++)
             for(int c=0; c<A.cols; c++)
@@ -61,109 +61,112 @@ namespace GTL
     };
 
     //output function
-    template <class T>
-    ostream & operator<<(ostream& os, const Matrix<T> &A)
+    template <class V>
+    std::ostream & operator<<(std::ostream& os, const Matrix<V> &A)
     {
         for(int r=0; r<A.rows; r++)
         {
             for(int c=0; c<A.cols; c++)
                 os << A[r][c] << " ";
-            os << endl;
+            os << std::endl;
         }
         return os;
     };
 
     //matrix addition
-    template <class T>
-    Matrix<T> operator+(const Matrix<T> &A, const Matrix<T> &B)
+    template <class V>
+    Matrix<V> operator+(const Matrix<V> &A, const Matrix<V> &B)
     {
-        Matrix<T> C(A.rows,B.cols);
-        for(int i=0; i<A.rows; i++)
-            for(int j = 0; j<A.cols; j++)
-                C[i][j] = A[i][j] + B[i][j];
+        Matrix<V> C(A.rows,B.cols);
+        for(int r=0; r<A.rows; r++)
+            for(int c=0; c<A.cols; c++)
+                C[r][c] = A[r][c] + B[r][c];
         return C;
     };
 
     //matrix subtraction
-    template <class T>
-    Matrix<T> operator-(const Matrix<T> &A, const Matrix<T> &B)
+    template <class V>
+    Matrix<V> operator-(const Matrix<V> &A, const Matrix<V> &B)
     {
-        Matrix<T> C(A.rows,B.cols);
-        for(int i=0; i<A.rows; i++ )
-            for (int j=0; j<B.cols; j++ )
-                C[i][j] = A[i][j] - B[i][j];
+        Matrix<V> C(A.rows,B.cols);
+        for(int r=0; r<A.rows; r++ )
+            for (int c=0; c<B.cols; c++ )
+                C[r][c] = A[r][c] - B[r][c];
         return C;
     };
 
     //matrix multiplication
-    template <class T>
-    Matrix<T> operator*(const Matrix<T> &A, const Matrix<T> &B)
+    template <class V>
+    Matrix<V> operator*(const Matrix<V> &A, const Matrix<V> &B)
     {
-        Matrix<T> C(A.rows,B.cols);
-        for(int i=0; i<A.rows; i++)
-            for(int j=0; j<B.cols; j++)
-                for(int k=0; k<A.cols; k++)
-                    C[i][j] += A[i][k]*B[k][j];
+        Matrix<V> C(A.rows,B.cols);
+        for(int r=0; r<A.rows; r++)
+            for(int c=0; c<B.cols; c++)
+                for(int i=0; i<A.cols; i++)
+                    C[r][c] += A[r][i]*B[i][c];
         return C;
     };
 
     //scalar multiplication
-    template <class T>
-    Matrix<T> operator*(const T &a, const Matrix<T> &A)
+    template <class V>
+    Matrix<V> operator*(const V &a, const Matrix<V> &A)
     {
-        Matrix<T> C(A.rows, A.cols);
-        for(int i=0; i<A.rows; i++)
-            for(int j=0; j<A.cols; j++)
-                C[i][j] = a*A[i][j];
+        Matrix<V> C(A.rows, A.cols);
+        for(int r=0; r<A.rows; r++)
+            for(int c=0; c<A.cols; c++)
+                C[r][c] = a*A[r][c];
 
         return C;
     };
 
     /* MAKE THIS BETTER!! */
     //power of a matrix
-    template <class T>
-    Matrix<T> pow(const Matrix<T> &A, int a)
+    template <class V>
+    Matrix<V> pow(const Matrix<V> &A, int n)
     {
-        Matrix<T> C;
-
-        C = A;
-        for(int i=2; i<=a; i++)
-        {
+        Matrix<V> C = A;
+        for(int p=2; p<=n; p++)
             C = C*A;
-        }
-
         return C;
     };
 
-    template <class X, class T>
-    X sdot(const Matrix<X> &A, const Matrix<T> &B)
+    /*
+        returns the expected value of the payoff matrix given the probability
+        of each outcome occuring as given in the probabilities matrix.
+    */
+    template <class V>
+    V sdot(const Matrix<V> &probabilities, const Matrix<V> &payoffs)
     {
-        X ans = (X) 0;
-        for(int i=0; i<A.rows; i++)
-            for(int j=0; j<A.cols; j++)
-                ans += A[i][j] * ((X) B[i][j]);
+        V ans = V(0);
+        for(int r=0; r<probabilities.rows; r++)
+            for(int c=0; c<probabilities.cols; c++)
+                ans += probabilities[r][c] * payoffs[r][c];
 
         return ans;
     };
 
-    template <class X, class T>
-    vector<X> smdot(const Matrix<X> &A, const vector<Matrix<T> > &B)
+    /*
+        returns the expected value of each payoff matrix given the probability
+        of each outcome occuring as given in the probabilities matrix.
+    */
+    template <class V>
+    std::vector<V> smdot(const Matrix<V> &probabilities, const std::vector<Matrix<V> > &payoffs)
     {
-        vector<X> ans(B.size(),(PROB) 0);
-        for(int p=0; p<B.size(); p++)
-            for(int i=0; i<A.rows; i++)
-                for(int j=0; j<A.cols; j++)
-                    ans[p] += A[i][j] * ((X) B[p][i][j]);
+        std::vector<V> ans(payoffs.size(), V(0));
+        for(int p=0; p<payoffs.size(); p++)
+            for(int r=0; r<probabilities.rows; r++)
+                for(int c=0; c<probabilities.cols; c++)
+                    ans[p] += probabilities[r][c] * payoffs[p][r][c];
 
         return ans;
     }
 
 
-    //Computes the transpose of a matrix
-    template <class Ty>
-    Matrix<Ty> T(const Matrix<Ty> &A)
+    //returns the transpose of matrix A
+    template <class V>
+    Matrix<V> transpose(const Matrix<V> &A)
     {
-        Matrix<Ty> C(A.cols, A.rows);
+        Matrix<V> C(A.cols, A.rows);
 
         for(int i=0; i<A.rows; i++)
             for(int j=0; j<A.cols; j++)

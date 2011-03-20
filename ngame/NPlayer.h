@@ -5,6 +5,9 @@
 
 namespace GTL
 {
+    /*
+        This struct stores information for a player in a normal form game.
+    */
     struct NPlayer
     {
         std::string name;
@@ -14,8 +17,8 @@ namespace GTL
         NPlayer(int NoActions);
     };
 
-    std::istream& operator>>(std::istream &is, NPlayer &player);
-    std::ostream& operator<<(std::ostream &os, const NPlayer &player);
+    std::istream& operator>>(std::istream &is, NPlayer &player);        //input function
+    std::ostream& operator<<(std::ostream &os, const NPlayer &player);  //output function
 }
 
 #endif //NPLAYER_H_

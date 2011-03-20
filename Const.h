@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdarg.h>
+#include <math.h>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -11,20 +12,11 @@
 #include <queue>
 #include <stack>
 
+#include <limits.h>
+
 
 namespace GTL
 {
-    /*
-        These are so you can easily change the data type for utility and
-        probability values, I did have templates for games, but having
-        everything in .h files was far too messy for me to bear.
-
-        If you change them to something that can't be passed to a
-        stringstream, you will break any output function using toString.
-    */
-    #define UTIL double    //type for utility values
-    #define PROB double    //type for probability values
-
     //converts a variable to a string
     template <class C>
     std::string toString(const C &c)
@@ -34,10 +26,93 @@ namespace GTL
         return oss.str();
     };
 
+    template <class C>
+    std::string toString(C &c)
+    {
+        std::ostringstream oss;
+        oss << c;
+        return oss.str();
+    };
+
+    //returns te length of an integer variable
+    template <class Int>
+    Int len(Int n)
+    {
+        if(n == 0)
+            return 1;
+        else if(n < 0)
+            n = -n;
+
+        Int length = 1;
+        while((n/=10) > 0)
+            length++;
+        return length;
+    };
+
+    //returns the greatest common divisor of a and b
+    /*
+    while b:
+        a, b = b, a%b
+    return a
+    */
+    template <class Int>
+    Int gcd(Int x, Int y)
+    {
+        x = abs(x);
+        y = abs(y);
+        Int a = min(x, y),
+            b = max(x, y),
+            c;
+        while(b)
+        {
+            c = a;
+            a = b;
+            b = c%b;
+        }
+        return a;
+    };
+
+    //returns the lowest common multiple of a and b
+    template <class I>
+    I lcm(const I &a, const I &b)
+    {
+        if(a == (I) 0 || b == (I) 0)
+            return (I)0;
+        else
+            return abs(a*b)/gcd(a,b);
+    };
+
     /*
         template vector functions
     */
-    //creates a vector with specified elements (must be a 1d vector)
+    //joins a s
+    template <class V>
+    std::string join(char c, const std::vector<V> &v)
+    {
+        std::string s = "";
+        if(v.size())
+            s += toString(v[0]);
+
+        for(int i=1; i<(int)v.size(); i++)
+            s += c + toString(v[i]);
+
+        return s;
+    };
+
+    template <class V>
+    std::string join(const std::string &c, const std::vector<V> &v)
+    {
+        std::string s = "";
+        if(v.size())
+            s += toString(v[0]);
+
+        for(int i=1; i<(int)v.size(); i++)
+            s += c + toString(v[i]);
+
+        return s;
+    };
+
+    //returns a vector with specified elements (must be a 1d vector)
     template <class V>
     std::vector<V> Vector(int noElements, V e1, ...)
     {

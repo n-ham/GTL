@@ -105,59 +105,54 @@ int GTL::NStrategy::noStrategiesInc(const vector<int> &incPlayers)
 //number of possible pure strategy combinations
 int GTL::NStrategy::noStrategies()
 {
-    int strategies = 1;
-
-    for(int i=0; i<(int)dimensions.size(); i++)
-        strategies *= dimensions[i];
-
-    return strategies;
+    return product(dimensions);
 };
 
 //increments to the next possible pure strategy combination keeping the strategy of player constant
 void GTL::NStrategy::ppExc(int excPlayer)
 {
-    int i = dimensions.size() - 1,
-        power = 1;
-
-    for(; i>=0 && (i == excPlayer || strategy[i] == dimensions[i]-1); i--, power*=dimensions[i])
+    for(int p=dimensions.size()-1, power = 1; p>=0; p--, power*=dimensions[p])
     {
-        if(i != excPlayer)
+        if(strategy[p] == dimensions[p]-1)
         {
-            strategy[i] = 0;
-            index -= (dimensions[i]-1)*power;
+            if(p != excPlayer)
+            {
+                strategy[p] = 0;
+                index -= (dimensions[p]-1)*power;
+            }
         }
-    }
-
-    if(i>=0)
-    {
-        strategy[i]++;
-        index += power;
+        else if(p != excPlayer)
+        {
+            strategy[p]++;
+            index += power;
+            break;
+        }
     }
 };
 
 //increments to the next possible pure strategy combination keeping the strategy of a number of players constant
 void GTL::NStrategy::ppExc(const vector<int> &excPlayers)
 {
-    int power = 1;
-    int i = dimensions.size() - 1;
     vector<bool> include(strategy.size(), 1);
-
     for(int i=0; i<(int)excPlayers.size(); i++)
         include[excPlayers[i] ] = 0;
 
-    for(;i>=0 && (!include[i] || strategy[i] == dimensions[i]-1); i--, power*=dimensions[i])
+    for(int p=dimensions.size()-1, power=1; p>=0; p--, power*=dimensions[p])
     {
-        if(include[i])
+        if(strategy[p] == dimensions[p]-1)
         {
-            strategy[i] = 0;
-            index -= (dimensions[i]-1)*power;
+            if(include[p])
+            {
+                strategy[p] = 0;
+                index -= (dimensions[p]-1)*power;
+            }
         }
-    }
-
-    if(i>=0)
-    {
-        strategy[i]++;
-        index += power;
+        else if(include[p])
+        {
+            strategy[p]++;
+            index += power;
+            break;
+        }
     }
 };
 
@@ -165,7 +160,6 @@ void GTL::NStrategy::ppExc(const vector<int> &excPlayers)
 void GTL::NStrategy::ppInc(int incPlayer)
 {
     int power = 1;
-
     for(int i=dimensions.size()-1; i>incPlayer; i--)
         power *= dimensions[i];
 
@@ -184,52 +178,53 @@ void GTL::NStrategy::ppInc(int incPlayer)
 //increments to the next possible pure strategy combination varying only strategies of players in the player vector
 void GTL::NStrategy::ppInc(const vector<int> &incPlayers)
 {
-    int power = 1;
-    int i = dimensions.size() - 1;
-    vector<bool> include(strategy.size(), false);
-
+    vector<bool> include(strategy.size(), 0);
     for(int i=0; i<(int)incPlayers.size(); i++)
-        include[incPlayers[i] ] = true;
+        include[incPlayers[i] ] = 1;
 
-    while (i>=0 && (!include[i] || strategy[i] == dimensions[i]-1))
+    for(int i=dimensions.size()-1, power=1; i>=0; i--, power*=dimensions[i])
     {
-        if(include[i])
+        if(strategy[i] == dimensions[i]-1)
+        {
+            if(include[i])
+            {
+                strategy[i] = 0;
+                index -= (dimensions[i]-1)*power;
+            }
+        }
+        else if(include[i])
+        {
+            strategy[i]++;
+            index += power;
+            break;
+        }
+    }
+};
+
+//(prefix) increments to the next possible pure strategy combination
+void GTL::NStrategy::operator++()
+{
+    for(int i=dimensions.size()-1, power=1; i>=0; i--, power*=dimensions[i])
+    {
+        if(strategy[i] == dimensions[i]-1)
         {
             strategy[i] = 0;
             index -= (dimensions[i]-1)*power;
         }
-
-        power *= dimensions[i];
-
-        i--;
-    }
-
-    if(i>=0)
-    {
-        strategy[i]++;
-        index += power;
+        else
+        {
+            strategy[i]++;
+            index += power;
+            break;
+        }
     }
 };
 
-//increments to the next possible pure strategy combination varying only the strategies of player
+//(postfix) increments to the next possible pure strategy combination
 void GTL::NStrategy::operator++(int)
 {
-    int i = dimensions.size() - 1,
-        power = 1;
-
-    for(; i>=0 && strategy[i] == dimensions[i]-1; i--, power*=dimensions[i])
-    {
-        strategy[i] = 0;
-        index -= (dimensions[i]-1)*power;
-    }
-
-    if(i>=0)
-    {
-        strategy[i]++;
-        index += power;
-    }
+    ++(*this);
 };
-
 
 //input function
 istream& GTL::operator>>(istream &is, NStrategy &strategy)
@@ -249,21 +244,10 @@ istream& GTL::operator>>(istream &is, NStrategy &strategy)
     return is;
 };
 
-//save function
-ofstream& GTL::operator<<(ofstream &ofs, const NStrategy &strategy)
-{
-    for(int i=0; i<(int)strategy.dimensions.size(); i++)
-        ofs << strategy[i] << " ";
-    return ofs;
-};
-
 //output function
 ostream& GTL::operator<<(ostream &os, const NStrategy &strategy)
 {
-    os << "ns(" << strategy[0];
-    for(int i=1; i<(int)strategy.strategy.size(); i++)
-        os << ", " << strategy[i];
-    os << ")";
+    os << join(' ', strategy.strategy);
 
     return os;
 };
