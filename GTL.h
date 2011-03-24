@@ -17,9 +17,11 @@
 #include "./maths/Tensor.h"
 
 //games
+#include "./zgame/ZGame.h"
 #include "./ngame/NGame.h"
 
 //game algorithms
+#include "./zgame/ZAlgorithms.h"
 #include "./ngame/NAlgorithms.h"
 
 #endif //GTL_H_

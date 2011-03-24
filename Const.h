@@ -149,6 +149,78 @@ namespace GTL
         return ans;
     };
 
+    //returns the minimum value in a vector
+    template <class V>
+    V min(const std::vector<V> &v)
+    {
+        if(v.size() == 0)
+            return (V)0;
+
+        V ans = v[0];
+        for(int i=1; i<(int)v.size(); i++)
+            if(v[i] < ans)
+                ans = v[i];
+        return ans;
+    };
+
+    //returns the maximum value in a vector
+    template <class V>
+    V max(const std::vector<V> &v)
+    {
+        if(v.size() == 0)
+            return (V)0;
+
+        V ans = v[0];
+        for(int i=1; i<(int)v.size(); i++)
+            if(v[i] > ans)
+                ans = v[i];
+        return ans;
+    };
+
+    //returns the indexes of the values that are minimal
+    template <class V>
+    std::vector<int> amin(const std::vector<V> &v)
+    {
+        if(v.size() == 0)
+            return std::vector<int>();
+
+        std::vector<int> ans(1, 0);
+        V smallest = v[0];
+        for(int i=1; i<(int)v.size(); i++)
+        {
+            if(v[i] == smallest)
+                ans.push_back(i);
+            else if(v[i] < smallest)
+            {
+                ans = std::vector<int>(1,i);
+                smallest = v[i];
+            }
+        }
+        return ans;
+    };
+
+    //returns the indexes of the values that are maximal
+    template <class V>
+    std::vector<int> amax(const std::vector<V> &v)
+    {
+        if(v.size() == 0)
+            return std::vector<int>();
+
+        std::vector<int> ans(1, 0);
+        V largest = v[0];
+        for(int i=1; i<(int)v.size(); i++)
+        {
+            if(v[i] == largest)
+                ans.push_back(i);
+            else if(v[i] > largest)
+            {
+                ans = std::vector<int>(1,i);
+                largest = v[i];
+            }
+        }
+        return ans;
+    };
+
     //returns [v1 | v2]
     template <class V>
     std::vector<V> operator|(const std::vector<V> &v1, const std::vector<V> &v2)

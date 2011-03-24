@@ -1,16 +1,19 @@
 #ifndef NGAME_H_
 #define NGAME_H_
 
+#include "../Const.h"
+
 #include "NPlayer.h"
 #include "NStrategy.h"
 #include "NMStrategy.h"
+
 #include "../maths/Tensor.h"
 #include "../maths/Matrix.h"
 
 namespace GTL
 {
     /*
-        This struct implements finite n-player normal form games
+        Struct implementing finite n-player normal form games
     */
     template <class U>
     struct NGame
@@ -25,6 +28,7 @@ namespace GTL
         std::vector<Tensor<U> > payoffs;      //players payoff tensors
 
         bool formatOutput;
+        int rowPlayer, colPlayer;
 
         /*
             functions
@@ -63,7 +67,7 @@ namespace GTL
         void save(const std::string &filename)
         {
             std::ofstream ofs(filename.c_str());
-            print(ofs);
+            print_unformatted(ofs);
             ofs.close();
         };
 
@@ -97,7 +101,7 @@ namespace GTL
             return smdot(strategy.pr, payoffs);
         };
 
-        void print(std::ostream &os)
+        void print_unformatted(std::ostream &os)
         {
             //adds the name of the game and the number of players to the output file
             os << "name " << name << std::endl;
@@ -115,46 +119,57 @@ namespace GTL
             os << "end" << std::endl;
         };
 
-        void print_readable(std::ostream &os)
+        void print_formatted(std::ostream &os)
         {
             //adds the name of the game to the output stream
             os << name << std::endl;
+            os << "row player: " << rowPlayer << std::endl;
+            os << "col player: " << colPlayer << std::endl;
 
             NStrategy strategy(dimensions);
-            std::vector<int> excPlayers = Vector(2, 0, 1);
+            std::vector<int> excPlayers = Vector(2, rowPlayer, colPlayer);
 
-            //for each of the players other than 0 and 1's strategy combinations
+            //for each of the players other than rowPlayer and colPlayers strategy combinations
             int noStrategies = strategy.noStrategiesExc(excPlayers);
             for(int s=0; s<noStrategies; s++)
             {
-                //outputs the strategies of players that aren't 0 or 1
+                //outputs the strategies of players that aren't rowPlayer or colPlayer
                 if(noPlayers > 2)
                 {
-                    os << "Other players strategies: " << players[2].actions[strategy[2] ];
-                    for(int p=3; p<noPlayers; p++)
-                        os << ", " << players[p].actions[strategy[p] ];
-                    os << std::endl;
+                    std::vector<std::string> otherStrategies(noPlayers, "");
+                    for(int p=0; p<noPlayers; p++)
+                    {
+                        if(p == rowPlayer || p == colPlayer)
+                            otherStrategies[p] = "_";
+                        else
+                            otherStrategies[p] = players[p].actions[strategy[p] ];
+                    }
+
+                    os << "Other players strategies: " << join(',', otherStrategies) << std::endl;
                 }
 
                 std::vector<std::vector<std::string> > output(dimensions[0]+1,
                                                               std::vector<std::string>(dimensions[1]+1, ""));
 
-                //gets the strategy choices of player 1
-                for(int a1=0; a1<players[1].noActions; a1++)
-                    output[0][a1+1] = players[1].actions[a1];
+                //gets the strategy choices of colPlayer
+                for(int a1=0; a1<players[colPlayer].noActions; a1++)
+                    output[0][a1+1] = players[colPlayer].actions[a1];
 
                 //gets the current lot of payoffs
-                for(int a0=0; a0<players[0].noActions; a0++)
+                for(int a0=0; a0<players[rowPlayer].noActions; a0++)
                 {
-                    output[a0+1][0] = players[0].actions[strategy[0] ];
-                    for(int a1=0; a1<players[1].noActions; a1++)
+                    //adds the strategy choice of rowPlayer
+                    output[a0+1][0] = players[rowPlayer].actions[a0];
+
+                    //adds the current row of payoffs
+                    for(int a1=0; a1<players[colPlayer].noActions; a1++)
                     {
                         output[a0+1][a1+1] += toString(u(0, strategy));
                         for(int p=1; p<noPlayers; p++)
                             output[a0+1][a1+1] += "," + toString(u(p,strategy));
-                        strategy.ppInc(1);
+                        strategy.ppInc(colPlayer);
                     }
-                    strategy.ppInc(0);
+                    strategy.ppInc(rowPlayer);
                 }
                 strategy.ppExc(excPlayers);
 
@@ -171,8 +186,7 @@ namespace GTL
                     for(int c=0; c<(int)output[r].size(); c++)
                     {
                         os.width(colWidth[c]);
-
-                        os << output[r][c] << " ";
+                        os << output[r][c] << "  ";
                     }
                     os << std::endl;
                 }
@@ -180,7 +194,6 @@ namespace GTL
             }
 
         };
-
     };
 
     /*
@@ -199,7 +212,11 @@ namespace GTL
             if(lineType == "name")
                 getline(is.ignore(1), game.name);
             else if(lineType == "players")
+            {
                 is >> game.noPlayers;
+                game.rowPlayer = game.noPlayers-2;
+                game.colPlayer = game.noPlayers-1;
+            }
             else if(lineType == "dimensions")
             {
                 game.dimensions = std::vector<int>(game.noPlayers, 0);
@@ -238,9 +255,9 @@ namespace GTL
     std::ostream& operator<<(std::ostream& os, NGame<U> &game)
     {
         if(game.formatOutput)
-            game.print_readable(os);
+            game.print_formatted(os);
         else
-            game.print(os);
+            game.print_unformatted(os);
 
         return os;
     };

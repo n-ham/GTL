@@ -82,10 +82,6 @@ namespace GTL
     template <class P>
     std::istream& operator>>(std::istream &is, NMStrategy<P> &strategy)
     {
-        //gets the "ms" string
-        std::string junk;
-        is >> junk;
-
         //reads each players mixed strategy
         for(int p=0; p<(int)strategy.pr.dimensions.size(); p++)
             for(int a=0; a<strategy.pr.dimensions[p]; a++)
@@ -104,7 +100,7 @@ namespace GTL
         if(strategy.mstrategy.size() > 0)
             os << join(' ', strategy.mstrategy[0]) << std::endl;
         for(int i=1; i<(int)strategy.mstrategy.size(); i++)
-            os << "    " << join(' ', strategy.mstrategy[i]) << std::endl;
+            os << join(' ', strategy.mstrategy[i]) << std::endl;
 
         return os;
     };

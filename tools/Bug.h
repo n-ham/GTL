@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-#define DEBUG false
+#define DEBUG
 
 /*
     struct for debugging - this is gross but can be used pretty much like an ofstream, except
@@ -28,7 +28,7 @@ namespace GTL
         //opens the specified file
         inline void open(const std::string &filename)
         {
-            #if DEBUG
+            #ifdef DEBUG
                 file.open(filename.c_str());
             #endif
         };
@@ -36,7 +36,7 @@ namespace GTL
         //closes the ofstream
         inline void close()
         {
-            #if DEBUG
+            #ifdef DEBUG
                 file.close();
             #endif
         };
@@ -45,7 +45,7 @@ namespace GTL
     //output function for endl
     inline Bug& operator<<(Bug &bug, std::ostream& (*manipulator)(std::ostream&))
     {
-        #if DEBUG
+        #ifdef DEBUG
             bug.file << manipulator;
         #endif
 
@@ -56,7 +56,7 @@ namespace GTL
     template <class T>
     inline Bug& operator<<(Bug &bug, const T &t)
     {
-        #if DEBUG
+        #ifdef DEBUG
             bug.file << t;
         #endif
 

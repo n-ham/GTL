@@ -30,7 +30,7 @@ namespace GTL
                 strategy.ppInc(p);
                 for(int a=1; a<game.dimensions[p]; a++)
                 {
-                    uMax = max(uMax, game.u(p, strategy));
+                    uMax = std::max(uMax, game.u(p, strategy));
                     strategy.ppInc(p);
                 }
 
@@ -55,7 +55,7 @@ namespace GTL
 
     //returns all mixed strategy Nash equilibria of the given game
     template <class U>
-    std::vector<NMStrategy<U> > msne(); //haha, good luck writing this
+    std::vector<NMStrategy<U> > msne(NGame<U> &game); //haha, good luck writing this
 }
 
 #endif //NALGORITHMS_H_
