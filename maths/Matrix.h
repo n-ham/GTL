@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #include "../Const.h"
+#include "../zgame/ZStrategy.h"
 #include <math.h>
 
 namespace GTL
@@ -53,6 +54,12 @@ namespace GTL
         std::vector<V>& operator[](int r) const
         {
             return (std::vector<V>&)matrix[r];
+        };
+
+        //index function
+        V& operator[](const ZStrategy &strategy) const
+        {
+            return (V&) matrix[strategy[0] ][strategy[1] ];
         };
 
         //returns the minimum value for a row

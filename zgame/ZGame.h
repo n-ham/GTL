@@ -54,13 +54,13 @@ namespace GTL
         void save(const std::string &filename)
         {
             std::ofstream ofs(filename.c_str());
-            print_unformatted(ofs);
+            print_unformatted(ofs, *this);
             ofs.close();
         };
 
         U u(int player, const ZStrategy &strategy)
         {
-            if(player = 0)
+            if(player == 0)
                 return payoffs[strategy[0] ][strategy[1] ];
             else
                 return -payoffs[strategy[0] ][strategy[1] ];
@@ -87,57 +87,39 @@ namespace GTL
             return ans;
         };
 
-        void print_unformatted(std::ostream &os)
+        //returns a new game with the specified strategies to include
+        ZGame<U> subGame(std::vector<std::list<int> > &strategies)
         {
-            os << "name " << name << std::endl;
-            os << "dimensions" << dimensions[0] << " " << dimensions[1] << std::endl;
+            ZGame<U> newGame;
+            newGame.name = name;
+            newGame.players = std::vector<ZPlayer>(2, ZPlayer(0));
 
-            //adds each of the players to the output stream
+            std::list<int>::iterator it1, it2;
+
             for(int p=0; p<2; p++)
-                os << "player " << players[p] << std::endl;
-
-            os << "payoffs" << std::endl;
-            os << payoffs << std::endl;
-
-            os << "end" << std::endl;
-        };
-
-        void print_formatted(std::ostream &os)
-        {
-            os << name << std::endl;
-            std::string output[dimensions[0]+1][dimensions[1]+1];
-
-            for(int acol=0; acol<dimensions[1]; acol++)
-                output[0][acol+1] = players[1].actions[acol];
-
-            for(int arow=0; arow<dimensions[0]; arow++)
             {
-                output[arow+1][0] = players[0].actions[arow];
-                for(int acol=0; acol<dimensions[1]; acol++)
-                    output[arow+1][acol+1] += toString(payoffs[arow][acol]) + "," + toString(-payoffs[arow][acol]);
+                newGame.dimensions.push_back(strategies[p].size());
+                newGame.players.push_back(ZPlayer(newGame.dimensions[p]));
+
+                for(it1 = strategies[p].begin(); it1!=strategies[p].end(); it1++)
+                    newGame.players[p].actions.push_back(players[p].actions[*it1]);
             }
 
-            //works out the output width of each column
-            std::vector<int> colWidth(dimensions[1], 0);
-            for(int r=0; r<dimensions[0]+1; r++)
-                for(int c=0; c<dimensions[1]+1; c++)
-                    colWidth[c] = std::max(colWidth[c], (int)output[r][c].size());
-
-            //outputs the current lot of payoffs
-            os.setf(std::ios::left);
-            for(int r=0; r<dimensions[0]+1; r++)
+            //creates the new payoff matrix
+            ZStrategy oldstrategy(dimensions),
+                      newstrategy(newGame.dimensions);
+            newGame.payoffs = Matrix<U>(newGame.dimensions[0], newGame.dimensions[1], 0);
+            for(it1 = strategies[0].begin(); it1 != strategies[0].end(); it1++)
             {
-                for(int c=0; c<dimensions[1]+1; c++)
+                for(it2= strategies[1].begin(); it2 != strategies[1].end(); it2++, newstrategy++)
                 {
-                    os.width(colWidth[c]);
-
-                    os << output[r][c] << "  ";
+                    oldstrategy.set(*it1, *it2);
+                    newGame.payoffs[newstrategy] = payoffs[oldstrategy];
                 }
-                os << std::endl;
             }
-            os.unsetf(std::ios::left);
-        };
 
+            return newGame;
+        }
     };
 
     //input function
@@ -177,14 +159,67 @@ namespace GTL
 
     //output function
     template <class U>
-    std::ostream& operator<<(std::ostream &os, ZGame<U> &game)
+    std::ostream& operator<<(std::ostream &os, const ZGame<U> &game)
     {
         if(game.formatOutput)
-            game.print_formatted(os);
+            print_formatted(os, game);
         else
-            game.print_unformatted(os);
+            print_unformatted(os, game);
 
         return os;
+    };
+
+    template <class U>
+    void print_unformatted(std::ostream &os, const ZGame<U> &game)
+    {
+        os << "name " << game.name << std::endl;
+        os << "dimensions" << game.dimensions[0] << " " << game.dimensions[1] << std::endl;
+
+        //adds each of the players to the output stream
+        for(int p=0; p<2; p++)
+            os << "player " << game.players[p] << std::endl;
+
+        os << "payoffs" << std::endl;
+        os << game.payoffs << std::endl;
+
+        os << "end" << std::endl;
+    };
+
+    template <class U>
+    void print_formatted(std::ostream &os, const ZGame<U> &game)
+    {
+        os << game.name << std::endl;
+        std::string output[game.dimensions[0]+1][game.dimensions[1]+1];
+
+        for(int acol=0; acol<game.dimensions[1]; acol++)
+            output[0][acol+1] = game.players[1].actions[acol];
+
+        for(int arow=0; arow<game.dimensions[0]; arow++)
+        {
+            output[arow+1][0] = game.players[0].actions[arow];
+            for(int acol=0; acol<game.dimensions[1]; acol++)
+                output[arow+1][acol+1] += toString(game.payoffs[arow][acol]) + "," + toString(-game.payoffs[arow][acol]);
+        }
+
+        //works out the output width of each column
+        std::vector<int> colWidth(game.dimensions[1], 0);
+        for(int r=0; r<game.dimensions[0]+1; r++)
+            for(int c=0; c<game.dimensions[1]+1; c++)
+                colWidth[c] = std::max(colWidth[c], (int)output[r][c].size());
+
+        //outputs the current lot of payoffs
+        os.setf(std::ios::left);
+        for(int r=0; r<game.dimensions[0]+1; r++)
+        {
+            for(int c=0; c<game.dimensions[1]+1; c++)
+            {
+                os.width(colWidth[c]);
+
+                os << output[r][c] << "  ";
+            }
+            os << std::endl;
+        }
+        os.unsetf(std::ios::left);
     };
 }
 

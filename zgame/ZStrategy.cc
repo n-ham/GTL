@@ -21,6 +21,61 @@ GTL::ZStrategy::ZStrategy(const std::vector<int> &Dimensions, int s1, int s2)
     strategy.push_back(s2);
 };
 
+//index function
+int& GTL::ZStrategy::operator[](int player) const
+{
+    return (int&) strategy[player];
+};
+
+//set functions
+void GTL::ZStrategy::set(const std::vector<int> &Strategy)
+{
+    strategy = Strategy;
+};
+
+void GTL::ZStrategy::set(int s1, int s2)
+{
+    strategy[0] = s1;
+    strategy[1] = s2;
+};
+
+void GTL::ZStrategy::setp(int player, int s)
+{
+    strategy[player] = s;
+};
+
+//reset function
+void GTL::ZStrategy::reset()
+{
+    strategy[0] = strategy[1] = 0;
+};
+
+
+int GTL::ZStrategy::noStrategiesExc(int excPlayer)
+{
+    return dimensions[(excPlayer+1)%2];
+};
+
+int GTL::ZStrategy::noStrategiesInc(int incPlayer)
+{
+    return dimensions[incPlayer];
+};
+
+int GTL::ZStrategy::noStrategies()
+{
+    return dimensions[0]*dimensions[1];
+};
+
+void GTL::ZStrategy::ppExc(int excPlayer)
+{
+    ++strategy[(excPlayer+1)%2] %= dimensions[(excPlayer+1)%2];
+};
+
+void GTL::ZStrategy::ppInc(int incPlayer)
+{
+    ++strategy[incPlayer] %= dimensions[incPlayer];
+};
+
 //pre-fix increment operator
 void GTL::ZStrategy::operator++()
 {
@@ -40,12 +95,6 @@ void GTL::ZStrategy::operator++()
 void GTL::ZStrategy::operator++(int)
 {
     ++(*this);
-};
-
-//index function
-int& GTL::ZStrategy::operator[](int player) const
-{
-    return (int&) strategy[player];
 };
 
 //input function

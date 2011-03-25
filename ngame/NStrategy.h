@@ -11,9 +11,9 @@ namespace GTL
         /*
             variables
         */
-        int index;                //index of strategies position in a payoff tensor
-        std::vector<int> strategy;          //strategy choices
-        std::vector<int> dimensions;        //dimensions of the game
+        int index;                       //tensor index
+        std::vector<int> dimensions;     //game dimensions
+        std::vector<int> strategy;       //strategy choices
 
         /*
             functions
@@ -51,4 +51,3 @@ namespace GTL
 }
 
 #endif //NSTRATEGY_H_
-
