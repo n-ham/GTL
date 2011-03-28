@@ -101,6 +101,53 @@ namespace GTL
             return smdot(strategy.pr, payoffs);
         };
 
+        //returns a new game with the specified strategies to include
+        NGame<U> subGame(std::vector<std::list<int> > &strategies)
+        {
+            NGame<U> newGame;
+            newGame.name = name;
+            newGame.noPlayers = noPlayers;
+            newGame.formatOutput = formatOutput;
+            newGame.rowPlayer = rowPlayer;
+            newGame.colPlayer = colPlayer;
+            newGame.players = std::vector<NPlayer>(noPlayers, NPlayer(0));
+
+            std::vector<std::list<int>::iterator> its(noPlayers, std::list<int>::iterator());
+
+            for(int p=0; p<noPlayers; p++)
+            {
+                newGame.dimensions.push_back(strategies[p].size());
+                newGame.players[p].noActions = newGame.dimensions[p];
+
+                for(its[p] = strategies[p].begin(); its[p]!=strategies[p].end(); its[p]++)
+                    newGame.players[p].actions.push_back(players[p].actions[*its[p] ]);
+
+                its[p] = strategies[p].begin();
+            }
+
+            //creates the new payoff matrix
+            NStrategy oldstrategy(dimensions),
+                      newstrategy(newGame.dimensions);
+            newGame.payoffs = std::vector<Tensor<U> >(noPlayers, Tensor<U>(newGame.dimensions));
+            int noStrategies = newstrategy.noStrategies();
+            for(int s=0; s<noStrategies; s++, newstrategy++)
+            {
+                oldstrategy.set(its);
+                for(int p=0; p<noPlayers; p++)
+                    newGame.payoffs[p][newstrategy] = payoffs[p][oldstrategy];
+
+                //increments the iterators
+                for(int p=noPlayers-1; p>=0; p--)
+                {
+                    if(++its[p] != strategies[p].end())
+                        break;
+                    its[p] = strategies[p].begin();
+                }
+
+            }
+
+            return newGame;
+        };
     };
 
     /*
@@ -218,8 +265,8 @@ namespace GTL
                 os << "Other players strategies: " << join(',', otherStrategies) << std::endl;
             }
 
-            std::vector<std::vector<std::string> > output(game.dimensions[0]+1,
-                                                          std::vector<std::string>(game.dimensions[1]+1, ""));
+            std::vector<std::vector<std::string> > output(game.dimensions[game.rowPlayer]+1,
+                                                          std::vector<std::string>(game.dimensions[game.colPlayer]+1, ""));
 
             //gets the strategy choices of colPlayer
             for(int a1=0; a1<game.players[game.colPlayer].noActions; a1++)

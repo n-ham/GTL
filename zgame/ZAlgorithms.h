@@ -14,13 +14,13 @@ namespace GTL
 {
     //returns a new game after iteratively removing pure strategies strictly dominated by a pure strategy
     template <class U>
-    ZGame<U> PIESDS(ZGame<U> &game)
+    ZGame<U> pure_iterated_elimination_of_pure_strategies(ZGame<U> &game)
     {
         ZStrategy strategyi(game.dimensions),
                   strategyj(game.dimensions);
 
         std::vector<std::list<int> > strategies(2, std::list<int>());
-        std::list<int>::iterator it1, it2, it3;
+        std::list<int>::iterator it_i, it_j, it3;
 
         //starts with all strategies as not dominated
         for(int p=0; p<2; p++)
@@ -36,15 +36,15 @@ namespace GTL
             for(int p=0; p<2; p++)
             {
                 //finds dominated strategies
-                for(it1 = ++strategies[p].begin(); it1 != strategies[p].end(); )
+                for(it_i = ++strategies[p].begin(); it_i != strategies[p].end(); )
                 {
-                    for(it2 = strategies[p].begin(); it2 != it1;)
+                    for(it_j = strategies[p].begin(); it_j != it_i;)
                     {
-                        bool dominated1 = 1,
-                             dominated2 = 1;
+                        bool dominatedi = 1,
+                             dominatedj = 1;
 
-                        strategyi.setp(p, *it1);
-                        strategyj.setp(p, *it2);
+                        strategyi.setp(p, *it_i);
+                        strategyj.setp(p, *it_j);
 
                         //checks each of the other players stragies
                         for(it3 = strategies[(p+1)%2].begin(); it3 != strategies[(p+1)%2].end(); it3++)
@@ -52,32 +52,30 @@ namespace GTL
                             strategyi.setp((p+1)%2, *it3);
                             strategyj.setp((p+1)%2, *it3);
 
-                            std::cout << strategyi << "   " << strategyj << std::endl;
-
                             if(game.u(p, strategyi) >= game.u(p, strategyj))
-                                dominated1 = 0;
+                                dominatedi = 0;
                             if(game.u(p, strategyj) >= game.u(p, strategyi))
-                                dominated2 = 0;
+                                dominatedj = 0;
 
-                            if(!dominated1 && !dominated2)
+                            if(!dominatedi && !dominatedj)
                                 break;
                         }
 
                         //checks to see if one of the two strategies is dominated
-                        if(dominated1)
+                        if(dominatedi)
                         {
-                            it1 = strategies[p].erase(it1);
+                            it_i = strategies[p].erase(it_i);
                             changed = 1;
                             break;
                         }
-                        else if(dominated2)
+                        else if(dominatedj)
                         {
-                            it2 = strategies[p].erase(it2);
+                            it_j = strategies[p].erase(it_j);
                             changed = 1;
                         }
-                        else if(++it2 == it1)
+                        else if(++it_j == it_i)
                         {
-                            it1++;
+                            it_i++;
                             break;
                         }
                     }
@@ -89,7 +87,7 @@ namespace GTL
     };
 
     template <class U>
-    ZGame<U> MIESDS(ZGame<U> &game)
+    ZGame<U> mixed_iterated_elimination_of_pure_strategies(ZGame<U> &game)
     {
 
 

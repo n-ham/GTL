@@ -99,7 +99,7 @@ namespace GTL
             for(int p=0; p<2; p++)
             {
                 newGame.dimensions.push_back(strategies[p].size());
-                newGame.players.push_back(ZPlayer(newGame.dimensions[p]));
+                newGame.players[p].noActions = newGame.dimensions[p];
 
                 for(it1 = strategies[p].begin(); it1!=strategies[p].end(); it1++)
                     newGame.players[p].actions.push_back(players[p].actions[*it1]);
@@ -119,7 +119,7 @@ namespace GTL
             }
 
             return newGame;
-        }
+        };
     };
 
     //input function

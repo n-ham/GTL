@@ -27,13 +27,13 @@ namespace GTL
         return oss.str();
     };
 
-    template <class C>
+    /*template <class C>
     std::string toString(C &c)
     {
         std::ostringstream oss;
         oss << c;
         return oss.str();
-    };
+    };*/
 
     //returns te length of an integer variable
     template <class Int>
