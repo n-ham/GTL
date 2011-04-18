@@ -20,7 +20,6 @@ namespace GTL
         std::vector<U> playGame(NGame<U> game, const std::vector<std::string> &botFiles)
         {
             Process bot;
-            game.formatOutput = 0;
 
             //lets each player pick their move
             std::vector<int> strategyChoices(game.noPlayers, 0);

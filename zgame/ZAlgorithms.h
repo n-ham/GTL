@@ -96,7 +96,7 @@ namespace GTL
 
     //returns all pure strategy Nash equilibria using minimax
     template <class U>
-    std::vector<ZStrategy> psne(ZGame<U> &game)
+    std::vector<ZStrategy> pure_strategy_Nash_equilibria(ZGame<U> &game)
     {
         //finds the strategies for row/col that max/min their min/max
         std::vector<std::vector<int> > strategies(2, std::vector<int>());
@@ -114,7 +114,7 @@ namespace GTL
 
     //returns all mixed strategy Nash equilibrium using the simplex algorithm
     template <class U>
-    std::vector<ZMStrategy<U> > msne(ZGame<U> &game);
+    std::vector<ZMStrategy<U> > mixed_strategy_Nash_equilibria(ZGame<U> &game);
 }
 
 #endif //ZALGORITHMS_H_

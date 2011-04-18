@@ -43,7 +43,6 @@ namespace GTL
         void ppExc(const std::vector<int> &excPlayers);
         void ppInc(int incPlayer);
         void ppInc(const std::vector<int> &incPlayers);
-        void pp(std::vector<std::list<int>::iterator> &Strategies);
         void operator++();
         void operator++(int);
     };

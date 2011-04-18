@@ -104,7 +104,7 @@ namespace GTL
 
     //returns all pure strategy Nash equilibria of the given game
     template <class U>
-    std::vector<NStrategy> psne(NGame<U> &game)
+    std::vector<NStrategy> pure_strategy_Nash_equilibria(NGame<U> &game)
     {
         Tensor<int> maxCount(game.dimensions);
         NStrategy strategy(game.dimensions);
@@ -147,7 +147,7 @@ namespace GTL
 
     //returns all mixed strategy Nash equilibria of the given game
     template <class U>
-    std::vector<NMStrategy<U> > msne(NGame<U> &game); //haha, good luck writing this
+    std::vector<NMStrategy<U> > mixed_strategy_Nash_equilibria(NGame<U> &game); //haha, good luck writing this
 }
 
 #endif //NALGORITHMS_H_

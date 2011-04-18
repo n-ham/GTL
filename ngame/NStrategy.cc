@@ -196,11 +196,6 @@ void GTL::NStrategy::ppInc(const vector<int> &incPlayers)
     }
 };
 
-void GTL::NStrategy::pp(std::vector<std::list<int>::iterator> &Strategy)
-{
-
-};
-
 //(prefix) increments to the next possible pure strategy combination
 void GTL::NStrategy::operator++()
 {

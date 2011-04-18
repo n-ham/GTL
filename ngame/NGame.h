@@ -27,7 +27,6 @@ namespace GTL
         std::vector<NPlayer> players;         //players in the game
         std::vector<Tensor<U> > payoffs;      //players payoff tensors
 
-        bool formatOutput;
         int rowPlayer, colPlayer;
 
         /*
@@ -49,7 +48,6 @@ namespace GTL
         void clear()
         {
             name = "";
-            formatOutput = 1;
             dimensions.clear();
             players.clear();
             payoffs.clear();
@@ -67,7 +65,7 @@ namespace GTL
         void save(const std::string &filename)
         {
             std::ofstream ofs(filename.c_str());
-            print_unformatted(ofs, *this);
+            ofs << print_unformatted(*this);
             ofs.close();
         };
 
@@ -107,7 +105,6 @@ namespace GTL
             NGame<U> newGame;
             newGame.name = name;
             newGame.noPlayers = noPlayers;
-            newGame.formatOutput = formatOutput;
             newGame.rowPlayer = rowPlayer;
             newGame.colPlayer = colPlayer;
             newGame.players = std::vector<NPlayer>(noPlayers, NPlayer(0));
@@ -208,40 +205,63 @@ namespace GTL
     template <class U>
     std::ostream& operator<<(std::ostream& os, const NGame<U> &game)
     {
-        if(game.formatOutput)
-            print_formatted(os, game);
-        else
-            print_unformatted(os, game);
+        os << print_unformatted(game);
 
         return os;
     };
 
+    //returns the output string of the game in the requested format
     template <class U>
-    void print_unformatted(std::ostream &os, const NGame<U> &game)
+    std::string toString(const NGame<U> &game, int format)
     {
+        switch(format)
+        {
+            case 0:
+                return print_unformatted(game);
+                break;
+            case 1:
+                return print_formatted(game);
+                break;
+
+            default:
+                return print_unformatted(game);
+                break;
+        }
+    }
+
+    template <class U>
+    std::string print_unformatted(const NGame<U> &game)
+    {
+        std::stringstream ss;
+
         //adds the name of the game and the number of players to the output file
-        os << "name " << game.name << std::endl;
-        os << "players " << game.noPlayers << std::endl;
-        os << "dimensions " << game.dimensions << std::endl;
+        ss << "name " << game.name << std::endl;
+        ss << "players " << game.noPlayers << std::endl;
+        ss << "dimensions " << game.dimensions << std::endl;
 
         //adds each of the players names and their pure strategies to the output file
         for(int p=0; p<game.noPlayers; p++)
-            os << "player " << game.players[p] << std::endl;
+            ss << "player " << game.players[p] << std::endl;
 
         //adds each players payoff tensor values to the output file
         for(int p=0; p<game.noPlayers; p++)
-            os << "payoffs " << game.payoffs[p].tensor << std::endl;
+            ss << "payoffs " << game.payoffs[p].tensor << std::endl;
 
-        os << "end" << std::endl;
+        ss << "end" << std::endl;
+
+        return ss.str();
     };
 
     template <class U>
-    void print_formatted(std::ostream &os, const NGame<U> &game)
+    std::string print_formatted(const NGame<U> &game)
     {
+        std::stringstream ss;
+        ss.setf(std::ios::left);
+
         //adds the name of the game to the output stream
-        os << game.name << std::endl;
-        os << "row player: " << game.rowPlayer << std::endl;
-        os << "col player: " << game.colPlayer << std::endl;
+        ss << game.name << std::endl;
+        ss << "row player: " << game.rowPlayer << std::endl;
+        ss << "col player: " << game.colPlayer << std::endl;
 
         NStrategy strategy(game.dimensions);
         std::vector<int> excPlayers = Vector(2, game.rowPlayer, game.colPlayer);
@@ -262,7 +282,7 @@ namespace GTL
                         otherStrategies[p] = game.players[p].actions[strategy[p] ];
                 }
 
-                os << "Other players strategies: " << join(',', otherStrategies) << std::endl;
+                ss << "Other players strategies: " << join(',', otherStrategies) << std::endl;
             }
 
             std::vector<std::vector<std::string> > output(game.dimensions[game.rowPlayer]+1,
@@ -297,20 +317,113 @@ namespace GTL
                     colWidth[c] = std::max(colWidth[c], (int)output[r][c].size());
 
             //outputs the current lot of payoffs
-            os.setf(std::ios::left);
             for(int r=0; r<(int)output.size(); r++)
             {
                 for(int c=0; c<(int)output[r].size(); c++)
                 {
-                    os.width(colWidth[c]);
-                    os << output[r][c] << "  ";
+                    ss.width(colWidth[c]);
+                    ss << output[r][c] << "  ";
                 }
-                os << std::endl;
+                ss << std::endl;
             }
-            os.unsetf(std::ios::left);
         }
 
+        return ss.str();
     };
+
+    //LaTeX output function (requires sgamevar.sty from Osborne)
+    template <class U>
+    std::string print_LaTeX(const NGame<U> &game)
+    {
+        std::stringstream ss;
+        ss.setf(std::ios::left);
+
+        NStrategy strategy(game.dimensions);
+        std::vector<int> excPlayers = Vector(2, 0, 1);
+
+        ss << "\\begin{center}" << std::endl;
+
+        //for each of the players other than rowPlayer and colPlayers strategy combinations
+        int noStrategies = strategy.noStrategiesExc(excPlayers);
+        for(int s=0; s<noStrategies; s++)
+        {
+            ss << "  \\begin{game}{" << game.dimensions[0] << "}{" << game.dimensions[1] << "}";
+            if(game.noPlayers > 2)
+            {
+                std::vector<std::string> otherStrategies(game.noPlayers, "");
+                for(int p=0; p<game.noPlayers; p++)
+                {
+                    if(p == game.rowPlayer)
+                        otherStrategies[p] = "\\underline{r}";
+                    else if(p == game.colPlayer)
+                        otherStrategies[p] = "\\underline{c}";
+                    else
+                        otherStrategies[p] = game.players[p].actions[strategy[p] ];
+                }
+                ss << "[" << join(' ', otherStrategies) << "]";
+            }
+            ss << std::endl;
+
+            std::vector<std::vector<std::string> > output(game.dimensions[game.rowPlayer]+1,
+                                                          std::vector<std::string>(game.dimensions[game.colPlayer]+1, ""));
+
+            //gets the strategy choices of colPlayer
+            for(int a1=0; a1<game.players[game.colPlayer].noActions; a1++)
+                output[0][a1+1] = game.players[game.colPlayer].actions[a1];
+
+            //gets the current lot of payoffs
+            for(int a0=0; a0<game.players[game.rowPlayer].noActions; a0++)
+            {
+                //adds the strategy choice of rowPlayer
+                output[a0+1][0] = game.players[game.rowPlayer].actions[a0];
+
+                //adds the current row of payoffs
+                for(int a1=0; a1<game.players[game.colPlayer].noActions; a1++)
+                {
+                    output[a0+1][a1+1] = "$" + toString(game.u(0,strategy));
+                    for(int p=1; p<game.noPlayers; p++)
+                        output[a0+1][a1+1] += "," + toString(game.u(p,strategy));
+                    output[a0+1][a1+1] += "$";
+                    strategy.ppInc(game.colPlayer);
+                }
+                strategy.ppInc(game.rowPlayer);
+            }
+            strategy.ppExc(excPlayers);
+
+            //works out the output width of each column
+            std::vector<int> colWidth(output[0].size(), 0);
+            for(int r=0; r<(int)output.size(); r++)
+                for(int c=0; c<(int)output[r].size(); c++)
+                    colWidth[c] = std::max(colWidth[c], (int)output[r][c].size());
+
+            //outputs the current lot of payoffs
+            for(int r=0; r<(int)output.size(); r++)
+            {
+                ss << "    ";
+                for(int c=0; c<(int)output[r].size(); c++)
+                {
+                    ss.width(colWidth[c]);
+                    ss << output[r][c] << "  ";
+
+                    if(c+1 < (int)output[r].size())
+                        ss << "\\>  ";
+                }
+                if(r+1 < (int)output.size())
+                    ss << "\\\\";
+                ss << std::endl;
+            }
+
+
+            ss << "  \\end{game}" << std::endl;
+
+            if(s+1 < noStrategies)
+                ss << "  \\hspace*{5mm}" << std::endl;
+        }
+        ss << "\\end{center}" << std::endl;
+
+        return ss.str();
+    };
+
 }
 
 #endif //NGAME_H_

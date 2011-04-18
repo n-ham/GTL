@@ -19,6 +19,7 @@
 //games
 #include "./zgame/ZGame.h"
 #include "./ngame/NGame.h"
+#include "./egame/EGame.h"
 
 //game algorithms
 #include "./zgame/ZAlgorithms.h"
